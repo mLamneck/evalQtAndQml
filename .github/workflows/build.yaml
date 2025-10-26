@@ -40,7 +40,7 @@ jobs:
       if: matrix.os == 'windows-latest'
       run: |
         cd build/Release
-        windeployqt.exe appballHunt.exe
+        windeployqt.exe appballHunt.exe --compiler-runtime
 
     - name: Install linuxdeployqt
       if: matrix.os == 'ubuntu-latest'
