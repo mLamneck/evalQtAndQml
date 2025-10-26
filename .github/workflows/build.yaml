@@ -6,12 +6,16 @@ jobs:
     name: "Build and test"
     strategy:
       matrix:
-        os: [windows-latest]
+        os: [windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
-    - name: Install Ninja (windows)
+    - name: Install Ninja (Windows)
       run: choco install ninja
       if: matrix.os == 'windows-latest'
+    
+    - name: Install Ninja (macOS)
+      run: brew install ninja
+      if: matrix.os == 'macos-latest'
  
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
@@ -19,6 +23,8 @@ jobs:
         version: '6.5.3'
         
     - uses: ilammy/msvc-dev-cmd@v1
+      if: matrix.os == 'windows-latest'
+      
     - uses: actions/checkout@v3
     
     - name: Build
@@ -29,17 +35,31 @@ jobs:
       run: |
         cd build/Release
         windeployqt.exe appballHunt.exe --qmldir ${{ github.workspace }} --compiler-runtime --release
+    
+    - name: Deploy Qt (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        cd build/Release
+        macdeployqt appballHunt.app -qmldir=${{ github.workspace }} -always-overwrite
         
-    - name: Test if executable works
+    - name: Test if executable works (Windows)
       if: matrix.os == 'windows-latest'
       run: |
         cd build/Release
         dir
         # Versuche die App zu starten (sollte zumindest Fehler zeigen)
         # ./appballHunt.exe --help || echo "Exit code: $LASTEXITCODE"
+    
+    - name: Test if executable works (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        cd build/Release
+        ls -la
+        # Optional: Test ob die .app-Bundle existiert
+        test -d appballHunt.app && echo "App bundle created successfully"
  
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
         name: qt-app-${{ matrix.os }}
-        path: build/Release/  # Nur das Release-Verzeichnis hochladen
+        path: build/Release/
