@@ -25,6 +25,7 @@ jobs:
       uses: jurplel/install-qt-action@v3
       with:
         version: '6.5.3'
+        arch: win64_mingw
     - uses: ilammy/msvc-dev-cmd@v1 # This action essentially calls vcvarsall.bat for the latest VS in the runner for x64
     - uses: actions/checkout@v3    # Actually check out the sources. GH Actions can run for events that may not require
                                    # sources (e.g. when someone comments on an issue)
@@ -34,8 +35,8 @@ jobs:
       # We don't need to set up the environment variable for CMake to see Qt because the install-qt-action
       # sets up the necessary variables automatically
       #run: cmake -S . -B build -G "Ninja Multi-Config" && cmake --build build --config Debug
-      run: cmake -S . -B build -G "Ninja Multi-Config" && cmake --build build --config Release
-
+      run: cmake -S . -B build -G "MinGW Makefiles" && cmake --build build --config Release   
+    
     - name: Deploy Qt (Windows)
       if: matrix.os == 'windows-latest'
       run: |
