@@ -1,63 +1,46 @@
 name: CI
  
-on: push # when to trigger this. Here, on every push
+on: push
 jobs:
   build_and_test:
     name: "Build and test"
     strategy:
       matrix:
-        os: [windows-latest]        #[ubuntu-latest, windows-latest] # we build on GitHub-provided Windows and Linux images
-    runs-on: ${{ matrix.os }} # use value from the matrix
+        os: [windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
-      #install ninja for linux
-    - name: Install dependencies (linux)
-      run: sudo apt install ninja-build
-      if: matrix.os == 'ubuntu-latest' # conditional, runs this step only on the Ubuntu runner
-
-      #install ninjy for windows
-    - name: Install Ninja (windows)    # Ninja is not available in GitHub-provided images,
-                                       # see https://github.com/actions/runner-images/issues/514
-      run: choco install ninja         # So let's install it through Chocolatey
+    - name: Install Ninja (windows)
+      run: choco install ninja
       if: matrix.os == 'windows-latest'
  
-      #???
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
       with:
         version: '6.5.3'
-        arch: win64_mingw
-    - uses: ilammy/msvc-dev-cmd@v1 # This action essentially calls vcvarsall.bat for the latest VS in the runner for x64
-    - uses: actions/checkout@v3    # Actually check out the sources. GH Actions can run for events that may not require
-                                   # sources (e.g. when someone comments on an issue)
-
-    # Here we call CMake manually, there are solutions for that in the Marketplace: https://github.com/marketplace/actions/run-cmake
-    - name: Build
-      # We don't need to set up the environment variable for CMake to see Qt because the install-qt-action
-      # sets up the necessary variables automatically
-      #run: cmake -S . -B build -G "Ninja Multi-Config" && cmake --build build --config Debug
-      run: cmake -S . -B build -G "MinGW Makefiles" && cmake --build build --config Release   
+        modules: 'qtquick qtquickcontrols2'  # Füge benötigte QML-Module hinzu
+        
+    - uses: ilammy/msvc-dev-cmd@v1
+    - uses: actions/checkout@v3
     
+    - name: Build
+      run: cmake -S . -B build -G "Ninja Multi-Config" && cmake --build build --config Release
+      
     - name: Deploy Qt (Windows)
       if: matrix.os == 'windows-latest'
       run: |
         cd build/Release
-        windeployqt.exe appballHunt.exe --compiler-runtime
-
-    - name: Install linuxdeployqt
-      if: matrix.os == 'ubuntu-latest'
+        windeployqt.exe appballHunt.exe --qmldir ${{ github.workspace }} --compiler-runtime --release
+        
+    - name: Test if executable works
+      if: matrix.os == 'windows-latest'
       run: |
-        wget https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
-        chmod +x linuxdeployqt-continuous-x86_64.AppImage
-        sudo mv linuxdeployqt-continuous-x86_64.AppImage /usr/local/bin/linuxdeployqt
-
-    - name: Deploy Qt (Linux)
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        cd build
-        linuxdeployqt appballHunt.exe -appimage
+        cd build/Release
+        dir
+        # Versuche die App zu starten (sollte zumindest Fehler zeigen)
+        # ./appballHunt.exe --help || echo "Exit code: $LASTEXITCODE"
  
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
         name: qt-app-${{ matrix.os }}
-        path: build/
+        path: build/Release/  # Nur das Release-Verzeichnis hochladen
