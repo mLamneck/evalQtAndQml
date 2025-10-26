@@ -3,20 +3,28 @@
 
 int main(int argc, char *argv[])
 {
+    qDebug() << "enter main";
     QGuiApplication app(argc, argv);
+    qDebug() << "app created";
 
+    qDebug() << "-> create qml engine";
     QQmlApplicationEngine engine;
-    const QUrl url(QStringLiteral("qrc:/ballHunt/Main.qml"));
+    qDebug() << "<- create qml engine";
+
+    qDebug() << "-> connect";
     QObject::connect(
         &engine,
-        &QQmlApplicationEngine::objectCreated,
+        &QQmlApplicationEngine::objectCreationFailed,
         &app,
-        [url](QObject *obj, const QUrl &objUrl) {
-            if (!obj && url == objUrl)
-                QCoreApplication::exit(-1);
-        },
+        []() { QCoreApplication::exit(-1); },
         Qt::QueuedConnection);
-    engine.load(url);
+    qDebug() << "<- connect";
 
+    qDebug() << "-> load qml module";
+    //engine.loadFromModule("ballHunt", "Main");
+    engine.load(QUrl("qrc:/ballHunt/Main.qml"));
+    qDebug() << "<- load qml module";
+
+    qDebug() << "-> run app";
     return app.exec();
 }
