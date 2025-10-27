@@ -41,22 +41,8 @@ jobs:
       run: |
         cd build/Release
         macdeployqt appballHunt.app -qmldir=${{ github.workspace }} -always-overwrite
-        
-    - name: Test if executable works (Windows)
-      if: matrix.os == 'windows-latest'
-      run: |
-        cd build/Release
-        dir
-        # Versuche die App zu starten (sollte zumindest Fehler zeigen)
-        # ./appballHunt.exe --help || echo "Exit code: $LASTEXITCODE"
-    
-    - name: Test if executable works (macOS)
-      if: matrix.os == 'macos-latest'
-      run: |
-        cd build/Release
-        ls -la
-        # Optional: Test ob die .app-Bundle existiert
-        test -d appballHunt.app && echo "App bundle created successfully"
+        codesign --force --deep --sign - appballHunt.app
+        xattr -cr appballHunt.app
  
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
