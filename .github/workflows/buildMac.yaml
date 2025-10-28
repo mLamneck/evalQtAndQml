@@ -1,0 +1,58 @@
+name: macOS Build
+
+on: 
+    #push
+    workflow_dispatch  # Manuell über GitHub UI starten
+
+jobs:
+  build_macos:
+    name: "Build for macOS"
+    runs-on: macos-latest
+    
+    steps:
+    - name: Install Ninja
+      run: brew install ninja
+    
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v3
+      with:
+        version: '6.5.3'
+    
+    - uses: actions/checkout@v3
+    
+    - name: Build
+      run: cmake -S . -B build -G "Ninja Multi-Config" && cmake --build build --config Release
+    
+    - name: Deploy Qt
+      run: |
+        cd build/Release
+        macdeployqt appballHunt.app -qmldir=${{ github.workspace }} -always-overwrite -verbose=3
+        
+        # Info.plist prüfen
+        if [ ! -f appballHunt.app/Contents/Info.plist ]; then
+          echo "ERROR: Info.plist missing!"
+          exit 1
+        fi
+        
+        cat appballHunt.app/Contents/Info.plist
+        
+        # Rechte setzen
+        chmod +x appballHunt.app/Contents/MacOS/appballHunt
+        
+        # Signieren
+        find appballHunt.app/Contents/Frameworks -name "*.framework" -exec codesign --force --sign - {} \; 2>/dev/null || true
+        find appballHunt.app/Contents/Frameworks -name "*.dylib" -exec codesign --force --sign - {} \; 2>/dev/null || true
+        codesign --force --sign - appballHunt.app/Contents/MacOS/appballHunt
+        codesign --force --deep --sign - appballHunt.app
+        
+        # Quarantine entfernen
+        xattr -cr appballHunt.app
+        
+        # Verifizieren
+        codesign --verify --verbose appballHunt.app
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: qt-app-macos
+        path: build/Release/appballHunt.app

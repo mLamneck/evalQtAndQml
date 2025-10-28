@@ -1,6 +1,9 @@
 name: CI
  
-on: push
+on: 
+    #push
+    workflow_dispatch  # Manuell über GitHub UI starten
+
 jobs:
   build_and_test:
     name: "Build and test"
