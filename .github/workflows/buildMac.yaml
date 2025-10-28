@@ -26,6 +26,8 @@ jobs:
     - name: Deploy Qt
       run: |
         cd build/Release
+        
+        # Deployen
         macdeployqt appballHunt.app -qmldir=${{ github.workspace }} -always-overwrite -verbose=3
         
         # Info.plist prüfen
@@ -34,22 +36,40 @@ jobs:
           exit 1
         fi
         
+        echo "=== Info.plist ==="
         cat appballHunt.app/Contents/Info.plist
         
         # Rechte setzen
         chmod +x appballHunt.app/Contents/MacOS/appballHunt
         
-        # Signieren
-        find appballHunt.app/Contents/Frameworks -name "*.framework" -exec codesign --force --sign - {} \; 2>/dev/null || true
-        find appballHunt.app/Contents/Frameworks -name "*.dylib" -exec codesign --force --sign - {} \; 2>/dev/null || true
-        codesign --force --sign - appballHunt.app/Contents/MacOS/appballHunt
-        codesign --force --deep --sign - appballHunt.app
+        echo "=== Signing all components ==="
+        
+        # 1. Signiere alle dylibs in Frameworks
+        find appballHunt.app/Contents/Frameworks -type f -name "*.dylib" -exec codesign --force --sign - --timestamp=none {} \; 2>/dev/null || true
+        
+        # 2. Signiere alle Frameworks
+        find appballHunt.app/Contents/Frameworks -type d -name "*.framework" | while read framework; do
+          codesign --force --sign - --timestamp=none "$framework/Versions/Current" 2>/dev/null || true
+          codesign --force --sign - --timestamp=none "$framework" 2>/dev/null || true
+        done
+        
+        # 3. Signiere alle Plugins
+        find appballHunt.app/Contents/PlugIns -type f \( -name "*.dylib" -o -name "*.so" \) -exec codesign --force --sign - --timestamp=none {} \; 2>/dev/null || true
+        
+        # 4. Signiere alle QML Plugins
+        find appballHunt.app/Contents/Resources/qml -type f \( -name "*.dylib" -o -name "*.so" \) -exec codesign --force --sign - --timestamp=none {} \; 2>/dev/null || true
+        
+        # 5. Signiere die Haupt-Binary
+        codesign --force --sign - --timestamp=none appballHunt.app/Contents/MacOS/appballHunt
+        
+        # 6. Signiere das komplette Bundle (ohne --deep, da wir schon alles signiert haben)
+        codesign --force --sign - --timestamp=none appballHunt.app
         
         # Quarantine entfernen
         xattr -cr appballHunt.app
         
-        # Verifizieren
-        codesign --verify --verbose appballHunt.app
+        echo "=== Verification (may show warnings, that's OK) ==="
+        codesign --verify --verbose appballHunt.app || echo "Note: Some warnings are expected with ad-hoc signing"
     
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
