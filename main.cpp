@@ -25,6 +25,6 @@ int main(int argc, char *argv[])
     engine.load(QUrl("qrc:/ballHunt/Main.qml"));
     qDebug() << "<- load qml module";
 
-    qDebug() << "-> run app";
+    qDebug().noquote() << "run qt eventLoop";
     return app.exec();
 }

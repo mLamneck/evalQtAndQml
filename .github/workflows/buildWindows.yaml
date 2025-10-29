@@ -1,0 +1,49 @@
+name: CI
+ 
+on: 
+    #push
+    workflow_dispatch  # Manuell über GitHub UI starten
+    
+jobs:
+  build_and_test:
+    name: "Build and test"
+    strategy:
+      matrix:
+        os: [windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Install Ninja (windows)
+      run: choco install ninja
+      if: matrix.os == 'windows-latest'
+ 
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v3
+      with:
+        version: '6.5.3'
+        
+    - uses: ilammy/msvc-dev-cmd@v1
+    - uses: actions/checkout@v3
+    
+    - name: Build
+      run: cmake -S . -B build -G "Ninja Multi-Config" && cmake --build build --config Release
+      
+    - name: Deploy Qt (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        cd build/Release
+        windeployqt.exe appballHunt.exe --qmldir ${{ github.workspace }} --compiler-runtime --release
+        
+    - name: Test if executable works
+      if: matrix.os == 'windows-latest'
+      run: |
+        cd build/Release
+        echo "=== Running appballHunt.exe ==="
+        ./appballHunt.exe > output.log 2>&1 || echo "App exited with code $LASTEXITCODE"
+        echo "=== Output ==="
+        type output.log
+        
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: qt-app-${{ matrix.os }}
+        path: build/Release/  # Nur das Release-Verzeichnis hochladen
