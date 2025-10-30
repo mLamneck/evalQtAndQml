@@ -1,8 +1,7 @@
 name: buildWindows
  
-on: 
-    #push
-    workflow_dispatch  # Manuell über GitHub UI starten
+on:
+  workflow_dispatch
     
 jobs:
   build_and_test:
@@ -26,25 +25,40 @@ jobs:
     
     - name: Build
       run: cmake -S . -B build -G "Ninja Multi-Config" && cmake --build build --config Release
-      
+
+    - name: Prepare deploy directory
+      if: matrix.os == 'windows-latest'
+      shell: pwsh
+      run: |
+        $deployDir = "deploy"
+        New-Item -ItemType Directory -Force -Path $deployDir | Out-Null
+        Copy-Item "build/Release/appballHunt.exe" $deployDir/
+        Write-Host "Deploy directory prepared:"
+        Get-ChildItem $deployDir
+
     - name: Deploy Qt (Windows)
       if: matrix.os == 'windows-latest'
+      shell: pwsh
       run: |
-        cd build/Release
-        windeployqt.exe appballHunt.exe --qmldir ${{ github.workspace }} --compiler-runtime --release
-        
+        cd deploy
+        Write-Host "Running windeployqt6..."
+        windeployqt6.exe appballHunt.exe --qmldir ${{ github.workspace }} --release --compiler-runtime
+        Write-Host "Deployment result:"
+        Get-ChildItem
+
     - name: Test if executable works
       if: matrix.os == 'windows-latest'
+      shell: pwsh
       run: |
-        cd build/Release
-        echo "=== Running appballHunt.exe ==="
-        ./appballHunt.exe || echo "App exited with code $LASTEXITCODE"
+        cd deploy
+        Write-Host "=== Running appballHunt.exe ==="
+        ./appballHunt.exe || Write-Host "App exited with code $LASTEXITCODE"
 
     - name: Verify logfile output
       if: matrix.os == 'windows-latest'
       shell: pwsh
       run: |
-        cd build/Release
+        cd deploy
         Write-Host "=== Checking startupLog.txt ==="
         if (Test-Path startupLog.txt) {
           Write-Host "startupLog.txt found"
@@ -62,9 +76,9 @@ jobs:
           Get-ChildItem
           exit 1
         }
-        
+
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
         name: qt-app-${{ matrix.os }}
-        path: build/Release/  # Nur das Release-Verzeichnis hochladen
+        path: deploy/
