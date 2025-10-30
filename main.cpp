@@ -1,5 +1,10 @@
-#include <QGuiApplication>
+#include <QApplication>
+//#include <QGuiApplication>
 #include <QQmlApplicationEngine>
+//#include <QQuickStyle>
+#include <QQmlContext>
+#include "filehandler.h"
+
 #include <QFile>
 #include <QTextStream>
 
@@ -16,41 +21,31 @@ void logToFile(const char* _msg)
 
 int main(int argc, char *argv[])
 {
-    logFile = new QFile("startupLog.txt");
 
-    if (logFile->open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
-        createDepFile = true;
-    }
-    /*
     QStringList args = QCoreApplication::arguments();
     if (args.contains("depTest", Qt::CaseInsensitive)) {
+        logFile = new QFile("startupLog.txt");
+        if (logFile->open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
+            createDepFile = true;
+        }
     }
-*/
 
     logToFile("-> create app");
-    QGuiApplication app(argc, argv);
-    logToFile("<- create app");
 
-    logToFile("-> create engine");
+    FileHandler filehandler;
+    QApplication app(argc, argv);
+    //QQuickStyle::setStyle("Material");
     QQmlApplicationEngine engine;
-    logToFile("<- create engine");
-
-    logToFile("-> connect to engine");
+    engine.rootContext()->setContextProperty("qtversion", QString(qVersion()));
+    engine.rootContext()->setContextProperty("filehandler", &filehandler);
     QObject::connect(
         &engine,
         &QQmlApplicationEngine::objectCreationFailed,
         &app,
         []() { QCoreApplication::exit(-1); },
         Qt::QueuedConnection);
-    logToFile("<- connect to engine");
-
-    logToFile("-> load url");
-    //engine.loadFromModule("ballHunt", "Main");
-    engine.load(QUrl("qrc:/ballHunt/Main.qml"));
-    logToFile("<- load url");
+    engine.loadFromModule("TestVbus", "Main");
 
     logToFile("run qt eventLoop");
-    auto res = app.exec();
-    logToFile("exit program");
-    return res;
+    return app.exec();
 }

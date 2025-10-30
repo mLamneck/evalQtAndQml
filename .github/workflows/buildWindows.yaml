@@ -66,7 +66,7 @@ jobs:
       run: |
         cd deploy
         Write-Host "=== Running appballHunt.exe ==="
-        ./appballHunt.exe || Write-Host "App exited with code $LASTEXITCODE"
+        ./appballHunt.exe depTest || Write-Host "App exited with code $LASTEXITCODE"
 
     - name: Verify logfile output
       if: matrix.os == 'windows-latest'
