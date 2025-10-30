@@ -15,7 +15,7 @@ jobs:
       run: choco install ninja
       if: matrix.os == 'windows-latest'
  
-     - name: List available Qt architectures
+    - name: List available Qt architectures
       if: matrix.os == 'windows-latest'
       shell: bash
       run: |
