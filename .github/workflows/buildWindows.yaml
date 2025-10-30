@@ -38,9 +38,28 @@ jobs:
       run: |
         cd build/Release
         echo "=== Running appballHunt.exe ==="
-        ./appballHunt.exe > output.log 2>&1 || echo "App exited with code $LASTEXITCODE"
-        echo "=== Output ==="
-        type output.log
+        ./appballHunt.exe || echo "App exited with code $LASTEXITCODE"
+
+    - name: Verify logfile output
+      if: matrix.os == 'windows-latest'
+      run: |
+        cd build/Release
+        echo "=== Checking startupLog.txt ==="
+        if exist startupLog.txt (
+          echo "startupLog.txt found"
+          findstr "run qt eventLoop" startupLog.txt >nul
+          if %errorlevel%==0 (
+            echo "Log contains 'run qt eventLoop'"
+          ) else (
+            echo "Log file found but message missing"
+            type startupLog.txt
+            exit /b 1
+          )
+        ) else (
+          echo "startupLog.txt not found!"
+          dir
+          exit /b 1
+        )
         
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4

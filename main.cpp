@@ -1,30 +1,56 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
+#include <QFile>
+#include <QTextStream>
+
+bool createDepFile = false;
+QFile *logFile = nullptr;
+
+void logToFile(const char* _msg)
+{
+    if (!createDepFile) return;
+    logFile->write(_msg);
+    logFile->write("\n");
+    logFile->flush();
+}
 
 int main(int argc, char *argv[])
 {
-    qDebug() << "enter main";
+    logFile = new QFile("startupLog.txt");
+
+    if (logFile->open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
+        createDepFile = true;
+    }
+    /*
+    QStringList args = QCoreApplication::arguments();
+    if (args.contains("depTest", Qt::CaseInsensitive)) {
+    }
+*/
+
+    logToFile("-> create app");
     QGuiApplication app(argc, argv);
-    qDebug() << "app created";
+    logToFile("<- create app");
 
-    qDebug() << "-> create qml engine";
+    logToFile("-> create engine");
     QQmlApplicationEngine engine;
-    qDebug() << "<- create qml engine";
+    logToFile("<- create engine");
 
-    qDebug() << "-> connect";
+    logToFile("-> connect to engine");
     QObject::connect(
         &engine,
         &QQmlApplicationEngine::objectCreationFailed,
         &app,
         []() { QCoreApplication::exit(-1); },
         Qt::QueuedConnection);
-    qDebug() << "<- connect";
+    logToFile("<- connect to engine");
 
-    qDebug() << "-> load qml module";
+    logToFile("-> load url");
     //engine.loadFromModule("ballHunt", "Main");
     engine.load(QUrl("qrc:/ballHunt/Main.qml"));
-    qDebug() << "<- load qml module";
+    logToFile("<- load url");
 
-    qDebug().noquote() << "run qt eventLoop";
-    return app.exec();
+    logToFile("run qt eventLoop");
+    auto res = app.exec();
+    logToFile("exit program");
+    return res;
 }
