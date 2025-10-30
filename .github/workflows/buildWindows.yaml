@@ -32,8 +32,7 @@ jobs:
       uses: jurplel/install-qt-action@v3
       with:
         version: '6.9.2'
-        extra-args: '-m qtcharts qtgraphs'
-        #modules: 'qtcharts,qtgraphs'
+        modules: 'qt-charts qt-graphs'
         host: ${{ matrix.os == 'windows-latest' && 'windows' || 'macos' }}
         arch: ${{ matrix.os == 'windows-latest' && 'win64_msvc2022_64' || '' }}
 
