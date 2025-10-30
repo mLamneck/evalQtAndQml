@@ -25,7 +25,8 @@ jobs:
       if: matrix.os == 'windows-latest'
       shell: bash
       run: |
-        python -m aqt list-qt windows desktop
+        aqt list-qt windows desktop --modules 6.9.2
+        # python -m aqt list-qt windows desktop 
     
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
