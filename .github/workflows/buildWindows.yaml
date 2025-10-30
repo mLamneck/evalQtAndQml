@@ -1,4 +1,4 @@
-name: CI
+name: buildWindows
  
 on: 
     #push
@@ -42,24 +42,26 @@ jobs:
 
     - name: Verify logfile output
       if: matrix.os == 'windows-latest'
+      shell: pwsh
       run: |
         cd build/Release
-        echo "=== Checking startupLog.txt ==="
-        if exist startupLog.txt (
-          echo "startupLog.txt found"
-          findstr "run qt eventLoop" startupLog.txt >nul
-          if %errorlevel%==0 (
-            echo "Log contains 'run qt eventLoop'"
-          ) else (
-            echo "Log file found but message missing"
-            type startupLog.txt
-            exit /b 1
-          )
-        ) else (
-          echo "startupLog.txt not found!"
-          dir
-          exit /b 1
-        )
+        Write-Host "=== Checking startupLog.txt ==="
+        if (Test-Path startupLog.txt) {
+          Write-Host "startupLog.txt found"
+          $content = Get-Content startupLog.txt
+          if ($content -match "run qt eventLoop") {
+            Write-Host "Log contains 'run qt eventLoop'"
+          } else {
+            Write-Host "Log file found but message missing"
+            Write-Host "----- Log content -----"
+            Get-Content startupLog.txt
+            exit 1
+          }
+        } else {
+          Write-Host "startupLog.txt not found!"
+          Get-ChildItem
+          exit 1
+        }
         
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
