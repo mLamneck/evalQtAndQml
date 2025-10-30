@@ -30,7 +30,8 @@ jobs:
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
       with:
-        version: '6.10.0'
+        version: '6.9.2'
+        modules: 'qtcharts,qtgraphs,qtquickcontrols2'
         host: ${{ matrix.os == 'windows-latest' && 'windows' || 'macos' }}
         arch: ${{ matrix.os == 'windows-latest' && 'win64_msvc2022_64' || '' }}
 
