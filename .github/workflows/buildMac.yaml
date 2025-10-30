@@ -50,8 +50,9 @@ jobs:
       shell: bash
       run: |
         cd deploy
-        echo "=== Running appballHunt.app ==="
-        ./appballHunt.app/Contents/MacOS/appballHunt || echo "App exited with code $?"
+        echo "=== Running appballHunt.app (timed) ==="
+        # läuft max. 10 Sekunden, dann wird es beendet
+        timeout 10 ./appballHunt.app/Contents/MacOS/appballHunt || echo "App exited or was killed"
 
     - name: Verify logfile output
       shell: bash
