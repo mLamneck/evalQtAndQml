@@ -15,11 +15,20 @@ jobs:
       run: choco install ninja
       if: matrix.os == 'windows-latest'
  
+     - name: List available Qt architectures
+      if: matrix.os == 'windows-latest'
+      shell: bash
+      run: |
+        python -m pip install aqtinstall
+        python -m aqt list-qt windows desktop --arch 6.10.0
+    
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
       with:
         version: '6.10.0'
-        
+        host: ${{ matrix.os == 'windows-latest' && 'windows' || 'macos' }}
+        arch: ${{ matrix.os == 'windows-latest' && 'win64_msvc2022_64' || '' }}
+      
     - uses: ilammy/msvc-dev-cmd@v1
     - uses: actions/checkout@v3
     
