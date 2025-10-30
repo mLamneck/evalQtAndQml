@@ -33,15 +33,16 @@ jobs:
     - name: Deploy Qt (macOS)
       run: |
         cd deploy
-        echo "Running macdeployqt..."
-        macdeployqt appballHunt.app \
+        echo "Running macdeployqt6..."
+        macdeployqt6 appballHunt.app \
           -qmldir=${{ github.workspace }} \
           -always-overwrite \
-          -verbose=2 \
-          -strip \
-          -no-strip-debug-symbols
+          -verbose=2
         # Entferne Quarantine-Attribute, damit App im CI läuft
         xattr -cr appballHunt.app
+        # Entferne Debug-Symbole manuell
+        echo "Stripping symbols..."
+        strip appballHunt.app/Contents/MacOS/appballHunt || true
         echo "Deployment finished:"
         du -sh appballHunt.app
 
