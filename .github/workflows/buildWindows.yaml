@@ -48,7 +48,7 @@ jobs:
       run: |
         $deployDir = "deploy"
         New-Item -ItemType Directory -Force -Path $deployDir | Out-Null
-        Copy-Item "build/Release/appballHunt.exe" $deployDir/
+        Copy-Item "build/Release/appTestVbus.exe" $deployDir/
         Write-Host "Deploy directory prepared:"
         Get-ChildItem $deployDir
 
@@ -58,7 +58,7 @@ jobs:
       run: |
         cd deploy
         Write-Host "Running windeployqt6..."
-        windeployqt6.exe appballHunt.exe --qmldir ${{ github.workspace }} --release --compiler-runtime
+        windeployqt6.exe appTestVbus.exe --qmldir ${{ github.workspace }} --release --compiler-runtime
         Write-Host "Deployment result:"
         Get-ChildItem
 
@@ -67,8 +67,8 @@ jobs:
       shell: pwsh
       run: |
         cd deploy
-        Write-Host "=== Running appballHunt.exe ==="
-        ./appballHunt.exe depTest || Write-Host "App exited with code $LASTEXITCODE"
+        Write-Host "=== Running appTestVbus.exe ==="
+        ./appTestVbus.exe depTest || Write-Host "App exited with code $LASTEXITCODE"
 
     - name: Verify logfile output
       if: matrix.os == 'windows-latest'
