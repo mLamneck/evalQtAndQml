@@ -18,7 +18,7 @@ jobs:
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
       with:
-        version: '6.5.3'
+        version: '6.10.0'
         
     - uses: ilammy/msvc-dev-cmd@v1
     - uses: actions/checkout@v3
