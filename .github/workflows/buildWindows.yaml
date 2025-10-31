@@ -88,9 +88,9 @@ jobs:
             exit 1
           }
         } else {
-          # Write-Host "startupLog.txt not found!"
-          # Get-ChildItem
-          # exit 1
+          Write-Host "startupLog.txt not found!"
+          Get-ChildItem
+          exit 1
         }
 
     - name: Upload build artifacts

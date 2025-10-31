@@ -3,6 +3,7 @@
 #include <QQmlApplicationEngine>
 //#include <QQuickStyle>
 #include <QQmlContext>
+#include <QDebug>
 #include "filehandler.h"
 
 #include <QFile>
@@ -21,19 +22,22 @@ void logToFile(const char* _msg)
 
 int main(int argc, char *argv[])
 {
+    qDebug() << "check args " << *argv;
+    for (auto i = 0; i<argc; i++){
+        qDebug() << argv[i];
+        if (QString(argv[i]).compare("depTest", Qt::CaseInsensitive) == 0) {
+            logFile = new QFile("startupLog.txt");
+            if (logFile->open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
+                createDepFile = true;
+            }
 
-    QStringList args = QCoreApplication::arguments();
-    if (args.contains("depTest", Qt::CaseInsensitive)) {
-        logFile = new QFile("startupLog.txt");
-        if (logFile->open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
-            createDepFile = true;
         }
     }
 
     logToFile("-> create app");
-
     FileHandler filehandler;
     QApplication app(argc, argv);
+
     //QQuickStyle::setStyle("Material");
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("qtversion", QString(qVersion()));
