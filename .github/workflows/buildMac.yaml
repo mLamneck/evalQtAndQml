@@ -14,8 +14,10 @@ jobs:
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
       with:
-        version: '6.10.0'
-
+        version: '6.9.2'
+        modules: 'qtshadertools qtquick3d qtcharts qtgraphs'
+        host: 'macos'
+        
     - uses: actions/checkout@v3
 
     - name: Build
@@ -26,7 +28,7 @@ jobs:
     - name: Prepare deploy directory
       run: |
         mkdir -p deploy
-        cp -R build/Release/appballHunt.app deploy/
+        cp -R build/Release/appTestVbus.app deploy/
         echo "Deploy directory contents:"
         ls -R deploy
 
@@ -34,24 +36,24 @@ jobs:
       run: |
         cd deploy
         echo "Running macdeployqt6..."
-        macdeployqt6 appballHunt.app \
+        macdeployqt6 appTestVbus.app \
           -qmldir=${{ github.workspace }} \
           -always-overwrite \
           -verbose=2
         # Entferne Quarantine-Attribute, damit App im CI läuft
-        xattr -cr appballHunt.app
+        xattr -cr appTestVbus.app
         # Entferne Debug-Symbole manuell
         echo "Stripping symbols..."
-        strip appballHunt.app/Contents/MacOS/appballHunt || true
+        strip appTestVbus.app/Contents/MacOS/appTestVbus || true
         echo "Deployment finished:"
-        du -sh appballHunt.app
+        du -sh appTestVbus.app
 
     - name: Test if executable works
       shell: bash
       run: |
         cd deploy
-        echo "=== Running appballHunt.app (timed) ==="
-        ./appballHunt.app/Contents/MacOS/appballHunt &
+        echo "=== Running appTestVbus.app (timed) ==="
+        ./appTestVbus.app/Contents/MacOS/appTestVbus &
         pid=$!
         sleep 10
         echo "Killing app after 10 seconds..."
