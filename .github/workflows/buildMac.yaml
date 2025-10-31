@@ -16,7 +16,7 @@ jobs:
       with:
         version: '6.9.2'
         modules: 'qtshadertools qtquick3d qtcharts qtgraphs'
-        host: 'macos'
+        host: 'mac'
         
     - uses: actions/checkout@v3
 
